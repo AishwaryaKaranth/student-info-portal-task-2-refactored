@@ -12,9 +12,15 @@ namespace ConsoleApp
         public static int schoolID;
         public static int rollNumber;
         public static string selectedSchool;
-        public static int subjectCode;
         public static int id;
-        //School currentSchool;
+        public enum StudentMenuOptions
+        {
+            AddStudent, AddMarks, Progress, SchoolMenu
+        }
+        public enum SchoolMenuOptions
+        {
+            Add, Manage, Exit
+        }
         static string[,] s = new string[,]
         {
             {"Kannada","English","Hindi","Maths","Science","Social"},
@@ -34,28 +40,32 @@ namespace ConsoleApp
         {
             
             Console.WriteLine("Enter valid option");
-            Console.WriteLine("1. Add school\n");
-            Console.WriteLine("2. Manage School\n");
-            Console.WriteLine("3. Exit\n");
-            int option;
-            bool checkInt = int.TryParse(Console.ReadLine(), out option);
-            
-            if (checkInt && (option >= 1 && option <= 3))
+            Console.WriteLine("1. Add school (Add)\n");
+            Console.WriteLine("2. Manage School (Manage)\n");
+            Console.WriteLine("3. Exit (Exit)\n");
+
+            if (Enum.TryParse<SchoolMenuOptions>(Console.ReadLine(), ignoreCase: true, out var schoolOption))
             {
-                switch (option)
+                switch (schoolOption)
                 {
-                    case 1:
-                        Console.WriteLine("Add School");
-                        SchoolDetails();
-                        break;
-                    case 2:
-                        Console.WriteLine("Manage School");
-                        ChooseSchool();
-                        break;
-                    case 3:
-                        Console.WriteLine("Exit");
-                        studentService.ExitApplication();
-                        break;
+                    case SchoolMenuOptions.Add:
+                        {
+                            Console.WriteLine("Add School");
+                            SchoolDetails();
+                            break;
+                        }
+                    case SchoolMenuOptions.Manage:
+                        {
+                            Console.WriteLine("Manage School");
+                            ChooseSchool();
+                            break;
+                        }
+                    case SchoolMenuOptions.Exit:
+                        {
+                            Console.WriteLine("Exit");
+                            studentService.ExitApplication();
+                            break;
+                        }
                     default:
                         break;
 
@@ -63,11 +73,8 @@ namespace ConsoleApp
             }
             else
             {
-                while(checkInt && (option<1 || option > 3))
-                {
-                    Console.WriteLine("enter valid option");
-                    checkInt = int.TryParse(Console.ReadLine(), out option);
-                }
+                Console.WriteLine("enter valid options");
+                SchoolMenu();
             }
         }
 
@@ -117,44 +124,46 @@ namespace ConsoleApp
         public static void MainMenu()
         {
             
-            Console.WriteLine("1. Add student\n");
-            Console.WriteLine("2. Add marks for student\n");
-            Console.WriteLine("3. Show student progress card\n");
-            Console.WriteLine("4. Go back to school menu\n");
+            Console.WriteLine("1. Add student (AddStudent)\n");
+            Console.WriteLine("2. Add marks for student (AddMark)\n");
+            Console.WriteLine("3. Show student progress card (Progress)\n");
+            Console.WriteLine("4. Go back to school menu (SchoolMenu)\n");
             Console.WriteLine("Please provide valid input from menu options :");
-            //int option=int.Parse(Console.ReadLine());
-            int option;
-            bool checkInteger = int.TryParse(Console.ReadLine(), out option);
-            //Console.WriteLine(checkInteger);
+            
             try
             {
-                if (checkInteger && (option>=1 && option<=4))
-                {
-                        
+                if (Enum.TryParse<StudentMenuOptions>(Console.ReadLine(), ignoreCase: true, out var option))
                     switch (option)
                     {
-                        case 1:
-                            DisplayAddStudent();
-                            break;
-                        case 2:
-                            DisplayAddMark();
-                            break;
-                        case 3:
-                            DisplayProgressCard(rollNumber);
-                            break;
-                        case 4:
-                            SchoolMenu();
-                            break;
+                        case StudentMenuOptions.AddStudent:
+                            {
+                                DisplayAddStudent();
+                                break;
+                            }
+                            
+                        case StudentMenuOptions.AddMarks:
+                            {
+                                DisplayAddMark();
+                                break;
+                            }
+                            
+                        case StudentMenuOptions.Progress:
+                            {
+                                DisplayProgressCard(rollNumber);
+                                break;
+                            }
+                            
+                        case StudentMenuOptions.SchoolMenu:
+                            {
+                                SchoolMenu();
+                                break;
+                            }
+                            
                         default:
                             break;
                     }
                     
-                }
-                else
-                {
-                    Console.WriteLine("enter valid option");
-                    MainMenu();
-                }
+                
             }
             catch (Exception e)
             {
@@ -231,6 +240,7 @@ namespace ConsoleApp
          
             Console.WriteLine("2. Add Marks\n ---------------------");
             Console.WriteLine("Enter Student Roll Number :");
+
             int rollNumber;
             bool checkInteger = int.TryParse(Console.ReadLine(), out rollNumber);
             while (!checkInteger || rollNumber <= 0)
@@ -263,7 +273,7 @@ namespace ConsoleApp
 
             for(int i = 0; i < school.studentList.Count; i++)
             {
-                if (school.studentList[i].Marks.Count != 0)
+                if (school.studentList[i].RollNumber==rollNumber && school.studentList[i].Marks.Count != 0)
                 {
                     Console.WriteLine("Are you sure you want to change marks? y/n");
                     char c = Console.ReadLine()[0];
@@ -308,16 +318,15 @@ namespace ConsoleApp
                 {
                     int k = SchoolService.subjectCode - 1;
                     Console.WriteLine("Enter " + s[k, i] + " marks");
-                    int mark;
-                    checkInteger = int.TryParse(Console.ReadLine(), out mark);
+                    float mark;
+                    checkInteger = float.TryParse(Console.ReadLine(), out mark);
                     while (!checkInteger || !studentService.checkValidity(mark))
                     {
                         Console.WriteLine("Enter valid " + s[SchoolService.subjectCode - 1, i] + " marks");
-                        checkInteger = int.TryParse(Console.ReadLine(), out mark);
+                        checkInteger = float.TryParse(Console.ReadLine(), out mark);
                     }
                     if (checkInteger)
                     {
-                        //studentService.checkValidity(mark);
                         array[i] = mark;//if entered marks is valid, add to the array.
 
                         totalMarks += array[i];
@@ -329,11 +338,10 @@ namespace ConsoleApp
                             while (!studentService.checkValidity(mark))
                             {
                                 Console.WriteLine("Enter valid" + s[SchoolService.subjectCode - 1, i] + " marks");
-                                checkInteger = int.TryParse(Console.ReadLine(), out mark);
+                                checkInteger = float.TryParse(Console.ReadLine(), out mark);
                             }
                         }
-                        /*Console.WriteLine("Enter valid marks");
-                        AddMark();*/
+                        
                     }
                 }
 

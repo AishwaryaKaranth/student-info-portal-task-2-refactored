@@ -64,7 +64,7 @@ namespace ConsoleApp
             
         }
 
-        public bool checkValidity(int marks)
+        public bool checkValidity(float marks)
         {
             if (marks < 0 || marks > 100)
             {
