@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 using System.Linq;
 
 namespace ConsoleApp
@@ -11,6 +15,8 @@ namespace ConsoleApp
         public static List<School> schoolList = new List<School>();
         public static List<float> marks = new List<float>();
         public static int subjectCode;
+        public static string jsonString;
+        public static string fileName= @"C:\Users\Admin\source\repos\student-info-portal-task-2-refactored\SchoolDetails.json";
         static string[,] s = new string[,]
         {
             {"Kannada","English","Hindi","Maths","Science","Social"},
@@ -23,6 +29,12 @@ namespace ConsoleApp
         public void AddSchool(string schoolName, int id)
         {
             schoolList.Add(new School(schoolName, id));
+            jsonString = JsonConvert.SerializeObject(schoolList, Formatting.Indented);
+            using (StreamWriter sw = File.AppendText(fileName))
+            {
+                sw.WriteLine("----------------------------------");
+            }
+            File.WriteAllText(fileName, jsonString);
         }
 
 
@@ -50,6 +62,12 @@ namespace ConsoleApp
             {
                 School school = schoolList.Find(_ => _.ID == schoolID);
                 school.studentList.Add(new Student(name, rollNumber, schoolID));
+                jsonString = JsonConvert.SerializeObject(schoolList, Formatting.Indented);
+                using (StreamWriter sw = File.AppendText(fileName))
+                {
+                    sw.WriteLine("----------------------------------");
+                }
+                File.WriteAllText(fileName, jsonString);
                 bool studentAdded = school.studentList.Any(_ => _.RollNumber == rollNumber);
                 if (studentAdded)
                 {
@@ -79,16 +97,17 @@ namespace ConsoleApp
             try
             {
                 School school = schoolList.Find(_ => _.ID == schoolID);
-                for (int i = 0; i < school.studentList.Count; i++)
+                Student student = school.studentList.Find(_ => _.RollNumber == rollNumber);
+                student.Marks = marks;
+                student.TotalMarks = totalMarks;
+                //Console.WriteLine(student.TotalMarks);
+                student.Percentage = percentage;
+                jsonString = JsonConvert.SerializeObject(schoolList, Formatting.Indented);
+                using (StreamWriter sw = File.AppendText(fileName))
                 {
-                    if (school.studentList[i].RollNumber == rollNumber)
-                    {
-                        school.studentList[i].Marks = marks;
-                        school.studentList[i].TotalMarks = totalMarks;
-                        school.studentList[i].Percentage = percentage;
-                        //school.studentList[i].SubjectCode = subjectCode;
-                    }
+                    sw.WriteLine("----------------------------------");
                 }
+                File.WriteAllText(fileName, jsonString);
             }
             catch (Exception)
             {
@@ -99,6 +118,7 @@ namespace ConsoleApp
 
         public void ExitApplication()
         {
+            
             Console.WriteLine("Exiting the application...");
             Environment.Exit(0);
 

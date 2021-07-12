@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.IO;
+using Newtonsoft.Json;
 using System.Linq;
 
 
@@ -13,13 +15,15 @@ namespace ConsoleApp
         public static int rollNumber;
         public static string selectedSchool;
         public static int id;
+        public static List<School> schoolJsonList;
+        public static string fileName;
         public enum StudentMenuOptions
         {
-            AddStudent, AddMarks, Progress, SchoolMenu
+            AddStudent=1, AddMarks=2, Progress=3, SchoolMenu=4
         }
         public enum SchoolMenuOptions
         {
-            Add, Manage, Exit
+            Add=1, Manage=2, Exit=3
         }
         static string[,] s = new string[,]
         {
@@ -38,11 +42,20 @@ namespace ConsoleApp
 
         public static void SchoolMenu()
         {
+            fileName = @"C:\Users\Admin\source\repos\student-info-portal-task-2-refactored\bin\Debug\netcoreapp3.1\SchoolDetails.json";
+            if (!File.Exists(fileName))
+            {
+                File.Create(fileName);
+            }
+            string json = File.ReadAllText(fileName);
+            schoolJsonList = JsonConvert.DeserializeObject<List<School>>(json);
+
+            SchoolService.schoolList = schoolJsonList;
             
             Console.WriteLine("Enter valid option");
-            Console.WriteLine("1. Add school (Add)\n");
-            Console.WriteLine("2. Manage School (Manage)\n");
-            Console.WriteLine("3. Exit (Exit)\n");
+            Console.WriteLine("1. Add school\n");
+            Console.WriteLine("2. Manage School \n");
+            Console.WriteLine("3. Exit \n");
 
             if (Enum.TryParse<SchoolMenuOptions>(Console.ReadLine(), ignoreCase: true, out var schoolOption))
             {
@@ -81,6 +94,11 @@ namespace ConsoleApp
 
         public static void SchoolDetails()
         {
+
+            for (int i = 0; i < schoolJsonList.Count; i++)
+            {
+                Console.WriteLine("School Name : " + schoolJsonList[i].Name + " || School ID : " + schoolJsonList[i].ID + "\n");
+            }
             Console.WriteLine("Enter School Name:");
             string schoolName = Console.ReadLine();
             
@@ -89,7 +107,25 @@ namespace ConsoleApp
                 Console.WriteLine("Enter valid school name");
                 SchoolDetails();
             }
+            if (new FileInfo(fileName).Length==0)
+            {
+                id += 1;
+                studentService.AddSchool(schoolName, id);
+            }
+            bool schoolExists = schoolJsonList.Any(_ => _.Name == schoolName);
+            if (schoolExists)
+            {
+                Console.WriteLine("School with that name already exists.");
+                SchoolDetails();
+            }
             id += 1;
+            bool schoolIDExists = schoolJsonList.Any(_ => _.ID ==id);
+            while (schoolIDExists)
+            {
+                id += 1;
+                schoolIDExists = schoolJsonList.Any(_ => _.ID == id);
+            }
+            //School school=schoolJsonList.
             studentService.AddSchool(schoolName, id);
 
             Console.WriteLine("Do you want to add another school? y/n");
@@ -103,18 +139,19 @@ namespace ConsoleApp
 
         public static void ChooseSchool()
         {
+            
             if (SchoolService.schoolList.Count == 0)
             {
                 Console.WriteLine("Add a school first");
                 SchoolDetails();
             }
-            for(int i = 0; i < SchoolService.schoolList.Count; i++)
+            for(int i = 0; i < schoolJsonList.Count; i++)
             {
-                Console.WriteLine("School Name : " + SchoolService.schoolList[i].Name + "|| School ID : " + SchoolService.schoolList[i].ID + "\n");
+                Console.WriteLine("School Name : " + schoolJsonList[i].Name + " || School ID : " + schoolJsonList[i].ID + "\n");
             }
             Console.WriteLine("Enter school ID");
             schoolID = int.Parse(Console.ReadLine());
-            School school = SchoolService.schoolList.Find(_ => _.ID == schoolID);
+            School school = schoolJsonList.Find(_ => _.ID == schoolID);
             selectedSchool = school.Name;
             Console.WriteLine("Main Menu\n------------------");
             Console.WriteLine("Welcome to " + selectedSchool + " Student Information Portal ");
@@ -124,10 +161,10 @@ namespace ConsoleApp
         public static void MainMenu()
         {
             
-            Console.WriteLine("1. Add student (AddStudent)\n");
-            Console.WriteLine("2. Add marks for student (AddMark)\n");
-            Console.WriteLine("3. Show student progress card (Progress)\n");
-            Console.WriteLine("4. Go back to school menu (SchoolMenu)\n");
+            Console.WriteLine("1. Add student \n");
+            Console.WriteLine("2. Add marks for student \n");
+            Console.WriteLine("3. Show student progress card \n");
+            Console.WriteLine("4. Go back to school menu \n");
             Console.WriteLine("Please provide valid input from menu options :");
             
             try
@@ -175,6 +212,7 @@ namespace ConsoleApp
 
         public static void DisplayAddStudent()
         {
+            
             Console.WriteLine("1. Add Student\n ----------------------------------");
             try
             {
@@ -189,7 +227,7 @@ namespace ConsoleApp
                 }
                 if (checkInt)
                 {
-                    School school = SchoolService.schoolList.Find(_ => _.ID == schoolID);
+                    School school = schoolJsonList.Find(_ => _.ID == schoolID);
                     bool studentExists = school.studentList.Any(_ => _.RollNumber == rollNumber);
                     if (studentExists)
                     {
@@ -230,7 +268,7 @@ namespace ConsoleApp
         {
             float[] array = new float[6];//array of size 6 for 6 subjects.
 
-            School school = SchoolService.schoolList.Find(_ => _.ID == schoolID);
+            School school = schoolJsonList.Find(_ => _.ID == schoolID);
             if (school.studentList.Count == 0)
             {
                 Console.WriteLine("Add a student first");
@@ -271,24 +309,24 @@ namespace ConsoleApp
                 }
             }
 
-            for(int i = 0; i < school.studentList.Count; i++)
+            Student student = school.studentList.Find(_ => _.RollNumber == rollNumber);
+            if (student.Marks.Count != 0)
             {
-                if (school.studentList[i].RollNumber==rollNumber && school.studentList[i].Marks.Count != 0)
+                Console.WriteLine("Are you sure you want to change the marks? y/n");
+                char c = Console.ReadLine()[0];
+                if (c == 'n')
                 {
-                    Console.WriteLine("Are you sure you want to change marks? y/n");
-                    char c = Console.ReadLine()[0];
-                    if (c == 'n')
-                    {
-                        DisplayAddMark();
-                    }
-                    if (c != 'y')
-                    {
-                        Console.WriteLine("Enter y or n");
-                        MainMenu();
-                    }
+                    DisplayAddMark();
+                }
+                if (c != 'y')
+                {
+                    Console.WriteLine("Enter y or n");
+                    MainMenu();
                 }
             }
             
+            
+
             try
             {
                 for (int i = 0; i < s.GetLength(0); i++)
@@ -362,7 +400,7 @@ namespace ConsoleApp
         public static void DisplayProgressCard(int rollNumber)
         {
             Console.WriteLine("3. Show student progress card\n --------------------------");
-            School school = SchoolService.schoolList.Find(_ => _.ID == schoolID);
+            School school = schoolJsonList.Find(_ => _.ID == schoolID);
             if (school.studentList.Count == 0)
             {
                 Console.WriteLine("Add a student first");
@@ -398,34 +436,24 @@ namespace ConsoleApp
                 }
                 try
                 {
-                   // Console.WriteLine(school.studentList[0].Name);
-                    for (int i = 0; i < school.studentList.Count; i++)
+
+                    Student student = school.studentList.Find(_ => _.RollNumber == rollNum);
+                    if (student.Marks.Count == 0)
                     {
-                        //Console.WriteLine(school.studentList.Count);
-                        if (school.studentList[i].RollNumber == rollNum && school.studentList[i].Marks.Count == 0)
-                        {
-                            Console.WriteLine("Marks not added");
-                            DisplayAddMark();
-                        }
-                        if (school.studentList[i].RollNumber == rollNum)
-                        {
-                            Console.WriteLine("Student Name : " + school.studentList[i].Name);
-                            Console.WriteLine("Student Roll Number : " + school.studentList[i].RollNumber);
-
-                            //int temp = school.studentList[i].SubjectCode;
-                            int temp = SchoolService.subjectCode - 1;
-                            
-                            for (int p = 0; p < school.studentList[i].Marks.Count; p++)
-                            {
-                                Console.WriteLine(s[temp, p] + " : " + school.studentList[i].Marks[p]);
-                            }
-                            Console.WriteLine("----------------------------------------------------");
-                            Console.WriteLine("Total Marks : " + school.studentList[i].TotalMarks);
-                            Console.WriteLine("Percentage : " + school.studentList[i].Percentage);
-                        }
-
+                        Console.WriteLine("marks not added");
+                        DisplayAddMark();
                     }
-
+                    Console.WriteLine("Student Name : " + student.Name);
+                    Console.WriteLine("Student roll number : " + student.RollNumber);
+                    Console.WriteLine("-------------------------------");
+                    int temp = SchoolService.subjectCode - 1;
+                    for(int p = 0; p < student.Marks.Count; p++)
+                    {
+                        Console.WriteLine(s[temp, p] + " : " + student.Marks[p]);
+                    }
+                    Console.WriteLine("-----------------------------------------------");
+                    Console.WriteLine("Total Marks : " + student.TotalMarks);
+                    Console.WriteLine("percentage : " + student.Percentage);
                 }
                 catch (Exception e)
                 {
