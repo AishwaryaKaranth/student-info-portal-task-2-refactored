@@ -145,10 +145,7 @@ namespace ConsoleApp
                 Console.WriteLine("Add a school first");
                 SchoolDetails();
             }
-            for(int i = 0; i < schoolJsonList.Count; i++)
-            {
-                Console.WriteLine("School Name : " + schoolJsonList[i].Name + " || School ID : " + schoolJsonList[i].ID + "\n");
-            }
+            
             Console.WriteLine("Enter school ID");
             schoolID = int.Parse(Console.ReadLine());
             School school = schoolJsonList.Find(_ => _.ID == schoolID);
