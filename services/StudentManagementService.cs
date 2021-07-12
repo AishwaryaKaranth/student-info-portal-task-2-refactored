@@ -16,7 +16,7 @@ namespace ConsoleApp
         public static List<float> marks = new List<float>();
         public static int subjectCode;
         public static string jsonString;
-        public static string fileName= @"C:\Users\Admin\source\repos\student-info-portal-task-2-refactored\SchoolDetails.json";
+        public static string fileName = @"C:\Users\Admin\source\repos\student-info-portal-task-2-refactored\bin\Debug\netcoreapp3.1\SchoolDetails.json";
         static string[,] s = new string[,]
         {
             {"Kannada","English","Hindi","Maths","Science","Social"},
@@ -25,7 +25,7 @@ namespace ConsoleApp
             {"Bengali","English","Hindi","Maths","Science","Social" }
         };
 
-       
+
         public void AddSchool(string schoolName, int id)
         {
             schoolList.Add(new School(schoolName, id));
@@ -55,7 +55,7 @@ namespace ConsoleApp
             return valid;
         }
 
-        
+
         public bool AddStudent(string name, int rollNumber, int schoolID)
         {
             try
@@ -75,11 +75,11 @@ namespace ConsoleApp
                 }
                 return false;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
-            
+
         }
 
         public bool checkValidity(float marks)
@@ -113,12 +113,12 @@ namespace ConsoleApp
             {
                 Console.WriteLine("Error occured");
             }
-            
+
         }
 
         public void ExitApplication()
         {
-            
+
             Console.WriteLine("Exiting the application...");
             Environment.Exit(0);
 
